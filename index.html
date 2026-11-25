@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0B1020">
+<title>LLM Pipeline Explorer</title>
+<style>
+:root{--bg:#0B1020;--card:#151B33;--card2:#1b2340;--text:#F4F6FF;--muted:#aeb8d4;--violet:#7C5CFF;--mint:#2EE6A6;--pink:#FF5C8A;--yellow:#FFD166;--line:#303b60;--radius:16px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#20204a 0,transparent 35%),var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,canvas:focus-visible,summary:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+.wrap{width:min(1100px,calc(100% - 32px));margin:auto}.hero{text-align:center;padding:44px 0 26px}.eyebrow{color:var(--mint);font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-weight:800}.hero h1{font-size:clamp(2rem,6vw,3.6rem);line-height:1.08;margin:10px 0;background:linear-gradient(90deg,#fff,var(--mint),#b9aaff);background-clip:text;color:transparent}.hero p{color:var(--muted);font-size:1.05rem;margin:0}
+.stepper{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0 22px}.step{border:1px solid var(--line);background:#11182c;color:var(--muted);padding:11px 8px;border-radius:13px;text-align:center;font-size:.9rem}.step b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#303958;margin-right:6px}.step.active{border-color:var(--violet);background:#211d46;color:white;box-shadow:0 0 20px #7c5cff25}.step.done b{background:var(--mint);color:#071b17}
+.card{background:linear-gradient(145deg,#171e38,#12192e);border:1px solid #293454;border-radius:var(--radius);padding:20px;margin:14px 0;box-shadow:0 14px 40px #0002}.card h2{font-size:1.25rem;margin:0 0 12px}.muted{color:var(--muted)}.sentence-row{display:flex;gap:10px}.sentence-row input{min-width:0;flex:1;background:#0c1326;border:1px solid #394568;border-radius:12px;color:var(--text);padding:14px 15px}.primary{border:0;border-radius:12px;background:linear-gradient(135deg,var(--violet),#5940d9);color:white;font-weight:800;padding:13px 22px;box-shadow:0 6px 20px #7c5cff35}.primary:hover{filter:brightness(1.12)}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:13px}.chip,.tab,.switch{background:#202947;color:#dce3ff;border:1px solid #3b496d;border-radius:999px;padding:8px 12px;font-size:.86rem}.chip:hover,.tab:hover,.switch:hover{border-color:var(--mint)}.robotrow{display:flex;align-items:center;gap:14px;margin:10px 0 18px}.robot{width:70px;flex:0 0 70px}.bubble{background:#202947;border:1px solid #3a476b;border-radius:14px;padding:10px 14px;color:#e9edff;position:relative}.bubble:before{content:"";position:absolute;left:-7px;top:17px;width:12px;height:12px;background:#202947;border-left:1px solid #3a476b;border-bottom:1px solid #3a476b;transform:rotate(45deg)}.blink{animation:blink 4s infinite}.tilt{transform-origin:50% 80%;animation:tilt 5s ease-in-out infinite}@keyframes blink{0%,46%,50%,100%{transform:scaleY(1)}48%{transform:scaleY(.08)}}@keyframes tilt{0%,90%,100%{rotate:0deg}94%{rotate:-7deg}}
+.tokens{display:flex;flex-wrap:wrap;gap:12px;min-height:65px}.token{display:flex;flex-direction:column;align-items:center;gap:3px;animation:pop .35s both;animation-delay:var(--delay,0ms)}.pill{border:1px solid var(--token-color);background:color-mix(in srgb,var(--token-color) 18%,#151b33);border-radius:999px;padding:8px 13px;color:white;font-weight:750}.tid{font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.8)}to{opacity:1;transform:none}}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 15px}.tab.active,.switch.active{background:var(--violet);border-color:var(--violet);color:white}.embedding-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}.embed-card{background:#0f172b;border:1px solid #2b385b;border-radius:13px;padding:12px;min-width:0}.embed-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-weight:750;margin-bottom:9px}.tag{font-size:.72rem;color:var(--yellow)}.bars{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px;align-items:end;height:65px}.barcell{display:flex;flex-direction:column;justify-content:end;align-items:center;height:100%;gap:3px}.bar{width:100%;min-height:2px;border-radius:4px;background:var(--mint)}.bar.neg{background:var(--pink)}.barlabel{font-size:.58rem;color:var(--muted)}.numberline{font-size:.68rem;color:#c6cee6;overflow-wrap:anywhere;margin-top:8px}
+.space-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.space-controls{display:flex;gap:8px;flex-wrap:wrap}.switch{padding:8px 13px}.canvas-wrap{position:relative;border:1px solid #354264;border-radius:15px;overflow:hidden;background:#080f21;margin-top:12px}.canvas-wrap:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 25%,#070d1d88 100%)}canvas{display:block;width:100%;height:500px;touch-action:none;cursor:grab}canvas:active{cursor:grabbing}.canvas-hint{position:absolute;z-index:2;left:12px;bottom:10px;color:#c0cbe5;background:#10182bcc;padding:6px 9px;border-radius:8px;font-size:.74rem;pointer-events:none}.tooltip{position:absolute;z-index:5;display:none;max-width:250px;padding:10px 12px;background:#080d1b;border:1px solid #61709c;border-radius:10px;box-shadow:0 10px 30px #0009;font-size:.8rem;pointer-events:none}.space-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px}.variance{display:flex;align-items:center;gap:8px;flex:1;min-width:190px}.variance-track{height:8px;background:#2a3554;border-radius:99px;overflow:hidden;flex:1}.variance-fill{height:100%;width:0;background:linear-gradient(90deg,var(--violet),var(--mint))}.note{font-size:.78rem;color:var(--muted)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}.heatmap{display:grid;gap:3px;overflow:auto}.heatrow{display:grid;grid-template-columns:75px repeat(var(--n),minmax(24px,1fr));gap:3px;align-items:center}.heatname{font-size:.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis}.heatcell{height:26px;border-radius:5px;display:grid;place-items:center;font-size:.62rem;color:#07111d;min-width:24px}.twins{display:grid;gap:8px}.twin{padding:9px 11px;background:#0e162a;border:1px solid #2a3658;border-radius:10px;font-size:.84rem}.twin strong{color:var(--mint)}.twin em{color:var(--pink);font-style:normal}.how summary{cursor:pointer;font-weight:750}.how ol{padding-left:20px;color:#cbd4ed;margin-bottom:0}.how li{margin:5px 0}.footer{text-align:center;padding:22px 0 35px;color:#8e9ab9;font-size:.82rem}
+@media(max-width:650px){.wrap{width:min(100% - 22px,1100px)}.card{padding:15px}.sentence-row{flex-direction:column}.sentence-row .primary{width:100%}.step{font-size:.72rem;padding:9px 3px}.step b{display:block;margin:0 auto 4px}.two-col{grid-template-columns:1fr}canvas{height:390px}.hero{padding-top:30px}.robot{width:58px;flex-basis:58px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero"><div class="eyebrow">An interactive machine-learning playground</div><h1>LLM Pipeline Explorer</h1><p>Watch a sentence get chopped, numbered, and launched into 3D space.</p></header>
+<nav class="stepper" aria-label="Pipeline stages"><div class="step active" data-step="1"><b>1</b>Sentence</div><div class="step" data-step="2"><b>2</b>Tokens</div><div class="step" data-step="3"><b>3</b>Embeddings</div><div class="step" data-step="4"><b>4</b>3D Space</div></nav>
+<section class="card" id="sentenceStage"><div class="robotrow"><svg class="robot tilt" viewBox="0 0 90 90" role="img" aria-label="Tokey the robot"><rect x="17" y="24" width="56" height="49" rx="14" fill="#7C5CFF" stroke="#b8aaff" stroke-width="2"/><rect x="25" y="34" width="40" height="25" rx="8" fill="#10182e"/><circle class="blink" cx="36" cy="46" r="4" fill="#2EE6A6"/><circle class="blink" cx="54" cy="46" r="4" fill="#2EE6A6"/><path d="M38 55 Q45 60 52 55" fill="none" stroke="#FFD166" stroke-width="2" stroke-linecap="round"/><path d="M45 24V14M39 14h12" stroke="#2EE6A6" stroke-width="3" stroke-linecap="round"/><rect x="9" y="40" width="8" height="20" rx="4" fill="#a894ff"/><rect x="73" y="40" width="8" height="20" rx="4" fill="#a894ff"/><path d="M31 73v7m28-7v7" stroke="#a894ff" stroke-width="5" stroke-linecap="round"/></svg><div class="bubble" id="speech">Chopping your sentence... sorry, words.</div></div>
+<h2>1. Give Tokey a sentence</h2><div class="sentence-row"><input id="sentence" aria-label="Sentence to explore" maxlength="600" placeholder="Type a sentence..." value="The cat sat on the mat"><button class="primary" id="explore">Explore!</button></div>
+<div class="chips" aria-label="Example sentences"><button class="chip">The cat sat on the mat</button><button class="chip">Pizza makes me happy</button><button class="chip">The king loves the queen</button><button class="chip">Bats and cats chase rats</button><button class="chip">My laptop crashed again</button></div></section>
+<section class="card" id="tokenStage"><h2>2. Tokens <span class="muted" id="tokenCount"></span></h2><p class="muted" style="margin-top:-5px">Tokens are the bite-sized pieces an LLM reads. IDs are stable hashes, not secret government numbers.</p><div class="tokens" id="tokens"><span class="muted">Your tokens will appear here.</span></div><p class="note" id="tokenNotice" aria-live="polite"></p></section>
+<section class="card" id="embedStage"><h2>3. Two ways to turn words into numbers</h2><div class="tabs" role="tablist"><button class="tab active" data-tab="spelling">Spelling-based</button><button class="tab" data-tab="meaning">Meaning-based</button><button class="tab" data-tab="both">Compare both</button></div><p class="muted" id="embedDescription">Character n-grams notice how words look. Similar spelling can mean similar vectors, even when meanings disagree.</p><div class="embedding-grid" id="embeddingGrid"></div></section>
+<section class="card" id="spaceStage"><div class="space-top"><div><h2 style="margin-bottom:2px">4. Launch into 3D space</h2><div class="muted" style="font-size:.86rem">Each point is a unique token. PCA projects the original vectors onto PC1, PC2 and PC3.</div></div><div class="space-controls"><button class="switch active" id="spellingSpace">Spelling space</button><button class="switch" id="meaningSpace">Meaning space</button><button class="switch" id="rotateToggle" aria-pressed="true">⟳ Auto-rotate: on</button></div></div>
+<div class="canvas-wrap"><canvas id="space" tabindex="0" aria-label="Interactive three-dimensional embedding plot. Drag to orbit, scroll to zoom, double click to reset."></canvas><div class="canvas-hint">Drag: orbit · Scroll/pinch: zoom · Double-click: reset · Arrows: rotate</div><div class="tooltip" id="tooltip"></div></div>
+<div class="space-meta"><div class="variance"><span class="note">Explained variance</span><div class="variance-track"><div class="variance-fill" id="varianceFill"></div></div><strong id="varianceText">—</strong></div><span class="note">3D squashes a lot of detail. Real models use thousands of dimensions.</span></div><p class="note" id="selectionText" aria-live="polite">Click two dots to compare their cosine similarity.</p></section>
+<div class="two-col"><section class="card"><h2>Similarity heatmap</h2><p class="note">Cosine similarity for the active embedding space.</p><div class="heatmap" id="heatmap"></div></section><section class="card"><h2>Spelling twin vs Meaning twin</h2><p class="note">Nearest neighbors can be very different depending on what you measure.</p><div class="twins" id="twins"></div></section></div>
+<section class="card how"><details><summary>How this works (the short version)</summary><ol><li>A simple BPE-style tokenizer splits your sentence into pieces.</li><li>Each piece gets a stable token ID and two different numeric vectors.</li><li>Spelling vectors hash character n-grams; meaning vectors use a tiny hand-built word lexicon.</li><li>PCA finds three directions that preserve as much variance as possible.</li><li>The canvas projects those coordinates with perspective, depth, and a movable camera.</li><li>This is a simplified demo, not a production language model.</li></ol></details></section>
+<footer class="footer">No tokens were harmed in the making of this website.</footer>
+</div>
+<script>
+"use strict";
+/* ---------------- Tokenizer ---------------- */
+const examples=["The cat sat on the mat","Pizza makes me happy","The king loves the queen","Bats and cats chase rats","My laptop crashed again"];
+const palette=["#7C5CFF","#2EE6A6","#FF5C8A","#FFD166","#64B5F6","#E879F9"];
+const stop=new Set(("the a an and or but on in at to of for with is are was were be been it my your me you he she they we this that").split(" "));
+function hash(s){let h=2166136261;for(const c of s){h^=c.codePointAt(0);h=Math.imul(h,16777619)}return (h>>>0)%50001}
+function splitLong(word){
+ const w=word.toLowerCase();if(w.length<8)return [w];
+ // Friendly deterministic suffix/prefix segmentation, including unhappiness -> un + happi + ness.
+ const known=[["un","happi","ness"],["re","play","ing"],["help","less"],["quick","ly"],["kind","ness"],["care","ful"],["hope","less"],["teach","er"],["walk","ing"],["play","ful"]];
+ for(const pieces of known){if(pieces.join("")===w)return pieces}
+ for(const pre of ["un","re","pre","mis","dis","over","under"]){if(w.startsWith(pre)&&w.length-pre.length>=5)return [pre,w.slice(pre.length)]}
+ for(const suf of ["ness","ment","tion","ing","ers","er","ful","less","ly","ed","es","s"]){if(w.endsWith(suf)&&w.length-suf.length>=4){let stem=w.slice(0,-suf.length);if(stem.endsWith("i")&&suf==="ness"){}return [stem,suf]}}
+ return [w.slice(0,4),w.slice(4)];
+}
+function tokenize(text){
+ const chunks=text.match(/[\p{L}\p{N}]+|[^\s\p{L}\p{N}]/gu)||[];let out=[];
+ for(const chunk of chunks){if(/^[\p{L}\p{N}]+$/u.test(chunk)){out.push(...splitLong(chunk))}else if(!/^\s+$/.test(chunk)){out.push(chunk)}}
+ return out;
+}
+/* ---------------- Embeddings ---------------- */
+// 8 semantic axes: animal, food, positive, negative, royalty, tech, action, size.
+const lex={};
+function add(words,vec){words.split(" ").forEach(w=>lex[w]=vec.slice())}
+add("cat dog kitten puppy lion tiger bear wolf fox rabbit horse cow sheep bird fish whale dolphin mouse rat bat", [1,0,0,0,0,0,0.05,0.15]);
+add("pizza burger bread rice pasta cheese apple banana orange grape cake cookie chocolate salad soup sandwich egg", [0,1,0.05,0,0,0,0,0.05]);
+add("happy joy joyful love loved smile laugh kind glad wonderful excited good great nice brilliant amazing", [0,0,1,0,0,0,0.05,0]);
+add("sad angry hate fear afraid awful bad terrible upset lonely cry worried pain sick crash broken", [0,0,-0.1,1,0,0,0,0]);
+add("king queen prince princess crown throne royal kingdom emperor empress monarch castle", [0,0,0,0,1,0,0,0.55]);
+add("laptop computer phone tablet keyboard screen internet robot software hardware code app", [0,0,0,0,0,1,0,0.05]);
+add("run walk chase jump swim fly move dance play travel drive race crawl", [0,0,0,0,0,0,1,0.05]);
+add("big huge giant large tall massive enormous mountain elephant", [0,0,0,0,0,0,0,1]);
+add("small tiny little mini short miniature", [0,0,0,0,0,0,0,-1]);
+add("sit sat sleep rest lie", [0.05,0,0,0,0,0,0.25,0]);
+add("make makes cook bake eat drink", [0,0.55,0.1,0,0,0,0.6,0]);
+add("crash crashed fail failed error broken glitch", [0,0,-0.1,0.9,0,0.45,0.1,0]);
+add("love loves adore admire", [0,0,0.9,0,0.1,0,0.1,0]);
+add("mat rug carpet floor bed chair table desk", [0,0,0,0,0,0,0,0.1]);
+add("sun moon star sky cloud rain snow tree flower plant", [0,0,0.15,0,0,0,0,0.15]);
+add("hello hi goodbye thanks please yes no", [0,0,0.25,0,0,0,0,0]);
+add("man woman person child baby friend family", [0.05,0,0.1,0,0,0,0,0]);
+add("fast slow quick", [0,0,0,0,0,0,0.5,0.15]);
+add("red blue green yellow black white purple", [0,0,0,0,0,0,0,0]);
+const lexWords=Object.keys(lex);
+function norm(v){const m=Math.hypot(...v)||1;return v.map(x=>x/m)}
+function grams(word){const s="^"+word.toLowerCase()+"$";let g=[];for(let n=1;n<=3;n++)for(let i=0;i<=s.length-n;i++)g.push(s.slice(i,i+n));return g}
+function spellingVector(word){let v=Array(32).fill(0);for(const g of grams(word)){let h=hash(g)%32;v[h]+=(g.length===1?1:g.length===2?1.4:1.8)*(hash(g+"!")%2?1:-1)}return norm(v)}
+function meaningVector(word){
+ const clean=word.toLowerCase();if(lex[clean])return {v:norm(lex[clean]),guessed:false};
+ const target=new Set(grams(clean));let scored=lexWords.map(w=>{let gs=new Set(grams(w)),inter=0;for(const g of target)if(gs.has(g))inter++;return [w,inter/(target.size+gs.size-inter||1)]}).sort((a,b)=>b[1]-a[1]).slice(0,4);
+ let v=Array(8).fill(0),total=0;scored.forEach(([w,s])=>{if(s>0){lex[w].forEach((x,i)=>v[i]+=x*s);total+=s}});
+ if(!total){ // neutral fallback with a tiny spelling-derived signature
+   const sv=spellingVector(clean);v=sv.slice(0,8).map(x=>x*.15);
+ } else v=v.map(x=>x/total);
+ return {v:norm(v),guessed:true};
+}
+function cosine(a,b){let dot=a.reduce((s,x,i)=>s+x*b[i],0),aa=Math.hypot(...a),bb=Math.hypot(...b);return aa&&bb?dot/(aa*bb):0}
+function uniqueTokens(tokens){let map=new Map();tokens.forEach((t,i)=>{let k=t.toLowerCase();if(!map.has(k))map.set(k,{word:t,key:k,indices:[],id:hash(k)});map.get(k).indices.push(i)});return [...map.values()]}
+/* ---------------- PCA: covariance power iteration + deflation ---------------- */
+function pca3D(vectors){
+ const n=vectors.length,d=vectors[0]?.length||1;if(n===0)return {points:[],variance:0};
+ const mean=Array(d).fill(0);vectors.forEach(v=>v.forEach((x,j)=>mean[j]+=x/n));
+ const X=vectors.map(v=>v.map((x,j)=>x-mean[j]));
+ if(n<2)return {points:[[0,0,0]],variance:0};
+ const cov=Array.from({length:d},()=>Array(d).fill(0));
+ for(let i=0;i<d;i++)for(let j=i;j<d;j++){let s=0;for(const row of X)s+=row[i]*row[j];cov[i][j]=cov[j][i]=s/(n-1)}
+ const original=cov.map(r=>r.slice()),components=[],eigen=[];
+ for(let k=0;k<Math.min(3,d);k++){
+   let v=Array.from({length:d},(_,i)=>Math.sin((i+1)*(k+2)*1.234)+.3*Math.cos(i*2.1+k));v=norm(v);
+   for(let iter=0;iter<180;iter++){let nv=cov.map(row=>row.reduce((s,x,j)=>s+x*v[j],0));let m=Math.hypot(...nv);if(m<1e-10)break;nv=nv.map(x=>x/m);if(cosine(v,nv)<0)nv=nv.map(x=>-x);v=nv}
+   let ev=0;for(let i=0;i<d;i++)for(let j=0;j<d;j++)ev+=v[i]*cov[i][j]*v[j];if(ev<1e-9)break;
+   // Deterministic sign: largest-magnitude loading is positive.
+   let imax=0;for(let i=1;i<d;i++)if(Math.abs(v[i])>Math.abs(v[imax]))imax=i;if(v[imax]<0)v=v.map(x=>-x);
+   components.push(v);eigen.push(ev);
+   for(let i=0;i<d;i++)for(let j=0;j<d;j++)cov[i][j]-=ev*v[i]*v[j];
+ }
+ let coords=X.map(row=>[0,1,2].map(k=>components[k]?row.reduce((s,x,j)=>s+x*components[k][j],0):0));
+ // Center and scale each projected dimension to a comparable visual range.
+ for(let j=0;j<3;j++){let m=coords.reduce((s,p)=>s+p[j],0)/coords.length;coords.forEach(p=>p[j]-=m);let sd=Math.sqrt(coords.reduce((s,p)=>s+p[j]*p[j],0)/Math.max(1,coords.length-1));if(sd>1e-8)coords.forEach(p=>p[j]/=sd)}
+ let total=original.reduce((s,row,i)=>s+row[i],0),expl=eigen.reduce((a,b)=>a+b,0)/(total||1);
+ return {points:coords,variance:Math.max(0,Math.min(1,expl)),eigen};
+}
+/* ---------------- State and pipeline ---------------- */
+const $=id=>document.getElementById(id),canvas=$("space"),ctx=canvas.getContext("2d"),reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let tokens=[],items=[],spell=[],mean=[],pcaSpell=[],pcaMean=[],active="spelling",tab="spelling",points=[],targetPoints=[],trails=[],selected=[],hovered=-1,autoRotate=!reduced,yaw=-.55,pitch=.35,zoom=1.25,drag=null,lastTime=0,animStart=0,animating=false;
+function stage(n){document.querySelectorAll(".step").forEach(el=>{let s=+el.dataset.step;el.classList.toggle("active",s===n);el.classList.toggle("done",s<n)})}
+function say(s){$("speech").textContent=s}
+function explore(){
+ const raw=$("sentence").value.trim();if(!raw){$("tokenNotice").textContent="A blank sentence has no tokens. Even Tokey needs something to chew.";return}
+ tokens=tokenize(raw);let notice="";if(tokens.length>30){tokens=tokens.slice(0,30);notice="Tokey stopped at 30 tokens. The rest has been sent to the word-limit dimension."}
+ $("tokenNotice").textContent=notice;$("tokenCount").textContent=`(${tokens.length} pieces)`;
+ items=uniqueTokens(tokens);spell=items.map(x=>spellingVector(x.key));mean=items.map(x=>meaningVector(x.key).v);
+ pcaSpell=pca3D(spell);pcaMean=pca3D(mean);active="spelling";tab="spelling";selected=[];hovered=-1;
+ $("spellingSpace").classList.add("active");$("meaningSpace").classList.remove("active");document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+ $("tokens").innerHTML="";tokens.forEach((t,i)=>{let idx=items.findIndex(x=>x.key===t.toLowerCase()),el=document.createElement("div");el.className="token";el.style.setProperty("--delay",`${Math.min(i,18)*55}ms`);let pill=document.createElement("span");pill.className="pill";pill.style.setProperty("--token-color",palette[idx%palette.length]);pill.textContent=t;let id=document.createElement("span");id.className="tid";id.textContent=`ID ${hash(t.toLowerCase())}`;el.append(pill,id);$("tokens").append(el)});
+ renderEmbeddings();renderTwins();switchSpace("spelling",true);stage(4);say("Assigning numbers. Very official.");setTimeout(()=>say("Launching words into 3D space. Science!"),500);
+}
+function vectorCard(item,vec,guess,idx,label){
+ const card=document.createElement("div");card.className="embed-card";const head=document.createElement("div");head.className="embed-head";head.innerHTML=`<span>${escapeHTML(item.word)} <span class="muted">×${item.indices.length}</span></span><span class="tag">${guess?"🤷 guessed meaning":label}</span>`;card.append(head);
+ const bars=document.createElement("div");bars.className="bars";vec.slice(0,8).forEach((v,i)=>{let cell=document.createElement("div");cell.className="barcell";let b=document.createElement("div");b.className="bar"+(v<0?" neg":"");b.style.height=(Math.max(2,Math.abs(v)*50))+"px";b.title=`Dimension ${i+1}: ${v.toFixed(3)}`;let l=document.createElement("span");l.className="barlabel";l.textContent=i+1;cell.append(b,l);bars.append(cell)});card.append(bars);
+ const nums=document.createElement("div");nums.className="numberline";nums.textContent=vec.slice(0,8).map(v=>v.toFixed(2)).join(" · ")+(vec.length>8?" · …":"");card.append(nums);return card;
+}
+function renderEmbeddings(){
+ const grid=$("embeddingGrid");grid.innerHTML="";$("embedDescription").textContent=tab==="spelling"?"Character n-grams notice how words look. These vectors have 32 dimensions; the bars show the first 8.":tab==="meaning"?"A tiny hand-crafted lexicon maps words onto 8 meaning axes. Unknown words get a best-effort guess.":"Side-by-side: spelling has 32 dimensions; meaning has 8. Only the first 8 values are shown.";
+ items.forEach((it,i)=>{if(tab!=="meaning")grid.append(vectorCard(it,spell[i],false,"","Spelling · 32D"));if(tab!=="spelling"){let g=meaningVector(it.key).guessed;grid.append(vectorCard(it,mean[i],g,"","Meaning · 8D"))}});
+}
+function nearest(i,vectors){return items.map((it,j)=>({word:it.word,score:cosine(vectors[i],vectors[j]),j})).filter(x=>x.j!==i).sort((a,b)=>b.score-a.score)}
+function renderTwins(){
+ $("twins").innerHTML="";items.forEach((it,i)=>{let sn=nearest(i,spell)[0],mn=nearest(i,mean)[0];let s=sn?sn.word:"—",m=mn?mn.word:"—";let caption=sn&&mn?`${it.word}'s spelling twin is ${s}, but its meaning twin is ${m}. Awkward family dinner.`:`${it.word} is flying solo. No twin in this sentence.`;let el=document.createElement("div");el.className="twin";el.innerHTML=`<strong>${escapeHTML(it.word)}</strong>: spelling twin <strong>${escapeHTML(s)}</strong> · meaning twin <em>${escapeHTML(m)}</em><br><span class="muted">${escapeHTML(caption)}</span>`;$("twins").append(el)})
+}
+function renderHeatmap(){
+ let vectors=active==="spelling"?spell:mean,box=$("heatmap");box.innerHTML="";box.style.setProperty("--n",items.length);if(!items.length)return;
+ items.forEach((it,i)=>{let row=document.createElement("div");row.className="heatrow";let name=document.createElement("span");name.className="heatname";name.textContent=it.word;row.append(name);items.forEach((other,j)=>{let val=cosine(vectors[i],vectors[j]),cell=document.createElement("div");cell.className="heatcell";let hue=val>=0?160:340;cell.style.background=`hsla(${hue},75%,${35+Math.abs(val)*30}%,${.35+Math.abs(val)*.65})`;cell.textContent=val.toFixed(1);cell.title=`${it.word} / ${other.word}: ${val.toFixed(3)}`;row.append(cell)});box.append(row)})
+}
+/* ---------------- 3D camera, projection, and drawing ---------------- */
+function resize(){let r=canvas.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.max(1,Math.round(r.width*dpr));canvas.height=Math.max(1,Math.round(r.height*dpr));ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
+function rotatePoint(p){
+ let [x,y,z]=p,cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+ let x1=x*cy-z*sy,z1=x*sy+z*cy,y1=y*cp-z1*sp,z2=y*sp+z1*cp;return [x1,y1,z2]
+}
+function project(p,w,h){let [x,y,z]=rotatePoint(p),camera=5.2/zoom,depth=camera-z,scale=Math.min(w,h)*.30*camera/Math.max(.3,depth);return {x:w/2+x*scale,y:h/2-y*scale,z,scale,depth}}
+function line3(a,b,color,width=1,alpha=.5){let A=project(a,canvas.clientWidth,canvas.clientHeight),B=project(b,canvas.clientWidth,canvas.clientHeight);ctx.strokeStyle=color;ctx.globalAlpha=alpha;ctx.lineWidth=width;ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.stroke();ctx.globalAlpha=1}
+function drawGrid(){
+ const r=2.5;for(let i=-5;i<=5;i++){let t=i*r/5;line3([-r,-1.4,t],[r,-1.4,t],"#536184",1,.15);line3([t,-1.4,-r],[t,-1.4,r],"#536184",1,.15)}
+ // bounding cube
+ let c=[-r,r];for(let x of c)for(let y of [-1.8,1.8])for(let z of c){line3([x,y,z],[x===-r?r:-r,y,z],"#7584aa",1,.10);line3([x,y,z],[x,y===-1.8?1.8:-1.8,z],"#7584aa",1,.10);line3([x,y,z],[x,y,z===-r?r:-r],"#7584aa",1,.10)}
+ // colored PC axes with arrowheads and ticks
+ const axes=[{p:[2.9,0,0],c:"#FF5C8A",name:"PC1"},{p:[0,2.9,0],c:"#2EE6A6",name:"PC2"},{p:[0,0,2.9],c:"#7C5CFF",name:"PC3"}];
+ axes.forEach((a,i)=>{line3([0,0,0],a.p,a.c,2.4,.95);let end=project(a.p,canvas.clientWidth,canvas.clientHeight);ctx.fillStyle=a.c;ctx.font="bold 12px system-ui";ctx.fillText(a.name,end.x+7,end.y-7);for(let t=-2;t<=2;t++){let p=i===0?[t,0,0]:i===1?[0,t,0]:[0,0,t],q=i===0?[t,.07,0]:i===1?[.07,t,0]:[.07,0,t];line3(p,q,a.c,1,.7)}})
+}
+function draw(){
+ const w=canvas.clientWidth,h=canvas.clientHeight;if(!w||!h)return;ctx.clearRect(0,0,w,h);
+ // Starfield
+ for(let i=0;i<65;i++){let x=(i*137.5%w),y=(i*79.7%h);ctx.fillStyle=`rgba(190,205,255,${.08+(i%4)*.035})`;ctx.fillRect(x,y,1.2,1.2)}
+ drawGrid();
+ // selected similarity line
+ if(selected.length===2){let a=points[selected[0]],b=points[selected[1]];if(a&&b){line3(a,b,"#FFD166",3,.95);let sim=cosine((active==="spelling"?spell:mean)[selected[0]],(active==="spelling"?spell:mean)[selected[1]]);$("selectionText").textContent=`${items[selected[0]].word} ↔ ${items[selected[1]].word}: cosine similarity ${sim.toFixed(3)}. Click a third dot to start a new pair.`}}
+ const projected=points.map((p,i)=>({p,i,screen:project(p,w,h)})).sort((a,b)=>b.screen.depth-a.screen.depth);
+ projected.forEach(({p,i,screen:s})=>{let near=Math.max(.18,Math.min(1.3,1.2/s.depth)),radius=Math.max(3,7*near),alpha=Math.max(.22,Math.min(1,1.25/s.depth)),color=palette[i%palette.length];ctx.globalAlpha=alpha;
+ ctx.shadowBlur=18*near;ctx.shadowColor=color;ctx.fillStyle=color;ctx.beginPath();ctx.arc(s.x,s.y,radius,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+ if(selected.includes(i)){ctx.strokeStyle="#FFD166";ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(s.x,s.y,radius+5,0,Math.PI*2);ctx.stroke()}
+ ctx.globalAlpha=Math.max(.5,alpha);ctx.fillStyle="#F4F6FF";ctx.font="600 12px system-ui";ctx.textAlign="left";ctx.fillText(items[i].word,s.x+radius+4,s.y+4);ctx.globalAlpha=1;
+ });
+}
+function switchSpace(which,instant=false){
+ active=which;let pca=which==="spelling"?pcaSpell:pcaMean;targetPoints=pca.points.map(p=>p.map(x=>x*.9));if(!points.length||instant){points=targetPoints.map(p=>p.slice());animating=false}else{trails=points.map(p=>p.slice());animStart=performance.now();animating=true;say(["Words are changing dimensions. Please remain calm.","Recalculating the vibes...","PCA goes brrrr."][Math.floor(Math.random()*3)])}
+ $("spellingSpace").classList.toggle("active",which==="spelling");$("meaningSpace").classList.toggle("active",which==="meaning");$("varianceFill").style.width=(pca.variance*100).toFixed(1)+"%";$("varianceText").textContent=(pca.variance*100).toFixed(1)+"%";renderHeatmap();draw();
+}
+function frame(now){if(animating){let t=Math.min(1,(now-animStart)/1200),e=t*t*(3-2*t);points=targetPoints.map((p,i)=>p.map((x,j)=>trails[i][j]+(x-trails[i][j])*e));if(t>=1)animating=false}
+ if(autoRotate&&!drag)yaw+=.0022;draw();requestAnimationFrame(frame)}
+function nearestAt(x,y){let best=-1,bd=24;points.forEach((p,i)=>{let s=project(p,canvas.clientWidth,canvas.clientHeight),d=Math.hypot(s.x-x,s.y-y);if(d<bd){bd=d;best=i}});return best}
+function showTooltip(i,x,y){let tip=$("tooltip");if(i<0){tip.style.display="none";return}let v=active==="spelling"?spell:mean,near=nearest(i,v).slice(0,3);tip.innerHTML=`<strong>${escapeHTML(items[i].word)}</strong> · ID ${items[i].id}<br>Nearest: ${near.length?near.map(n=>`${escapeHTML(n.word)} (${n.score.toFixed(2)})`).join(", "):"No other tokens"}`;tip.style.display="block";tip.style.left=Math.min(x+12,canvas.clientWidth-250)+"px";tip.style.top=Math.min(y+12,canvas.clientHeight-90)+"px"}
+canvas.addEventListener("pointerdown",e=>{canvas.setPointerCapture(e.pointerId);drag={x:e.clientX,y:e.clientY,moved:false}});
+canvas.addEventListener("pointermove",e=>{let r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;if(drag){let dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>2)drag.moved=true;yaw+=dx*.008;pitch=Math.max(-1.35,Math.min(1.35,pitch+dy*.008));drag.x=e.clientX;drag.y=e.clientY;draw()}else{hovered=nearestAt(x,y);showTooltip(hovered,x,y)}});
+canvas.addEventListener("pointerup",e=>{if(!drag)return;let r=canvas.getBoundingClientRect(),i=nearestAt(e.clientX-r.left,e.clientY-r.top);if(!drag.moved&&i>=0){if(selected.includes(i))selected=selected.filter(x=>x!==i);else{selected.push(i);if(selected.length>2)selected.shift()}draw()}drag=null});
+canvas.addEventListener("pointerleave",()=>{if(!drag)$("tooltip").style.display="none"});
+canvas.addEventListener("wheel",e=>{e.preventDefault();zoom=Math.max(.55,Math.min(2.8,zoom*(e.deltaY>0?.91:1.1)));draw()},{passive:false});
+canvas.addEventListener("dblclick",()=>{yaw=-.55;pitch=.35;zoom=1.25;draw()});
+canvas.addEventListener("keydown",e=>{if(e.key==="ArrowLeft")yaw-=.12;else if(e.key==="ArrowRight")yaw+=.12;else if(e.key==="ArrowUp")pitch=Math.max(-1.35,pitch-.12);else if(e.key==="ArrowDown")pitch=Math.min(1.35,pitch+.12);else return;e.preventDefault();draw()});
+/* ---------------- UI ---------------- */
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+$("explore").addEventListener("click",explore);$("sentence").addEventListener("keydown",e=>{if(e.key==="Enter")explore()});
+document.querySelectorAll(".chip").forEach((b,i)=>b.addEventListener("click",()=>{$("sentence").value=examples[i];explore()}));
+document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===b));renderEmbeddings()}));
+$("spellingSpace").addEventListener("click",()=>switchSpace("spelling"));$("meaningSpace").addEventListener("click",()=>switchSpace("meaning"));
+$("rotateToggle").addEventListener("click",()=>{autoRotate=!autoRotate;$("rotateToggle").textContent=`⟳ Auto-rotate: ${autoRotate?"on":"off"}`;$("rotateToggle").setAttribute("aria-pressed",String(autoRotate))});
+new ResizeObserver(resize).observe(canvas);window.addEventListener("resize",resize);
+if(reduced){autoRotate=false;$("rotateToggle").textContent="⟳ Auto-rotate: off";$("rotateToggle").setAttribute("aria-pressed","false")}
+resize();explore();requestAnimationFrame(frame);
+</script>
+</body>
+</html>
